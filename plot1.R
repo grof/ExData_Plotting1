@@ -32,7 +32,6 @@
 #----------------------------------------------------------------------------
 library(dplyr)
 library(lubridate)
-library(datasets)
 
 # Data source and destination
 zipurl  <- 'https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2Fhousehold_power_consumption.zip'
@@ -63,13 +62,13 @@ data <- mutate(data, DateTime = ymd_hms(DateTime))
 # filter the data so we keep only Feb 1-2 2007
 start <- ymd_hms('2007-02-01 00:00:00')
 end   <- ymd_hms('2007-02-02 23:59:59')
-plot1data <- filter(data, (DateTime >= start) & (DateTime <= end))
+plotdata <- filter(data, (DateTime >= start) & (DateTime <= end))
 
 # transform column of interest into number
-plot1data <- mutate(plot1data, Global_active_power = as.numeric(Global_active_power))
+plotdata <- mutate(plotdata, Global_active_power = as.numeric(Global_active_power))
 
 # plot histogram to screen as per figure provided
-hist(plot1data$Global_active_power,
+hist(plotdata$Global_active_power,
      col='red',
      main="Global Active Power",
      xlab='Global Active Power (kilowatts)')
@@ -77,7 +76,7 @@ hist(plot1data$Global_active_power,
 
 # plot histogram to PGN file as requested
 png(file = 'plot1.png', width = 480, height= 480)  ## open PNG device
-hist(plot1data$Global_active_power,
+hist(plotdata$Global_active_power,
      col='red',
      main="Global Active Power",
      xlab='Global Active Power (kilowatts)')
