@@ -2,8 +2,10 @@
 # plot2.R 
 # course: Exploratory Data Analysis         project# 1
 #
-# 2007. Your task is to reconstruct the following plots below, all of which
-# were constructed using the base plotting system.
+# Our overall goal here is simply to examine how household energy usage
+# varies over a 2-day period in February, 2007. Your task is to reconstruct
+# the following plots below, all of which were constructed using the base
+# plotting system.
 #
 # First you will need to fork and clone the following GitHub repository: 
 # https://github.com/rdpeng/ExData_Plotting1
@@ -64,14 +66,14 @@ start <- ymd_hms('2007-02-01 00:00:00')
 end   <- ymd_hms('2007-02-02 23:59:59')
 plotdata <- filter(data, (DateTime >= start) & (DateTime <= end))
 
-# transform column of interest into number
+# transform column of interest into numbers
 plotdata <- mutate(plot1data, Global_active_power = as.numeric(Global_active_power))
 
-# plot histogram to screen as per figure provided
+# plot line to screen as per figure provided
 plot(plotdata$DateTime, plotdata$Global_active_power, type='l', xlab = '', ylab='Global Active Power (kilowatts)')
 
 
-# plot histogram to PGN file as requested
+# plot line to PGN file as requested
 png(file = 'plot2.png', width = 480, height= 480)  ## open PNG device
 plot(plotdata$DateTime, plotdata$Global_active_power, type='l', xlab = '', ylab='Global Active Power (kilowatts)')
 dev.off()  ## close the PNG file device
