@@ -67,7 +67,7 @@ end   <- ymd_hms('2007-02-02 23:59:59')
 plotdata <- filter(data, (DateTime >= start) & (DateTime <= end))
 
 # transform column of interest into numbers
-plotdata <- mutate(plot1data, Global_active_power = as.numeric(Global_active_power))
+plotdata <- mutate(plotdata, Global_active_power = as.numeric(Global_active_power))
 
 # plot line to screen as per figure provided
 plot(plotdata$DateTime, plotdata$Global_active_power, type='l', xlab = '', ylab='Global Active Power (kilowatts)')
