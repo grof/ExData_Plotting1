@@ -36,40 +36,47 @@ library(dplyr)
 library(lubridate)
 
 # Data source and destination
-zipurl  <- 'https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2Fhousehold_power_consumption.zip'
-zipfile <- './exdata_data_household_power_consumption.zip'
+zipurl   <- 'https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2Fhousehold_power_consumption.zip'
+zipfile  <- './exdata_data_household_power_consumption.zip'
+datafile <- 'household_power_consumption.txt';
+plotdatafile <- 'household_power_consumption-20070201-20070202.txt';
 
 # download from source if file is not present already
 if (!file.exists(zipfile)) {
-download.file(zipurl, zipfile, 'curl')
+  download.file(zipurl, zipfile, 'curl')
 }
 
 # unzip the archive if not unzipped already
-if (file.exists(zipfile)) {
+if (file.exists(zipfile) & !file.exists(datafile)) {
   unzip(zipfile, overwrite = TRUE)
 }
 
-# load file as semi-colon separated values
-datafile = 'household_power_consumption.txt';
-datacsv <- read.csv(datafile, stringsAsFactors = FALSE, sep=';')
+if (!file.exists(plotdatafile)) {
+  # load file as semi-colon separated values
+  datacsv <- read.csv(datafile, stringsAsFactors = FALSE, sep=';', na.strings='?')
+  na.omit(datacsv)
+  
+  # Convert to data table so we can work with dplyr
+  data <- tbl_df(datacsv)
+  
+  # Create a single column for DateTime
+  data <- mutate(data, Date = dmy(Date))
+  data <- mutate(data, DateTime = paste(Date, Time, sep=' '))
+  data <- mutate(data, DateTime = ymd_hms(DateTime))
+  
+  # filter the data so we keep only Feb 1-2 2007
+  start <- ymd_hms('2007-02-01 00:00:00')
+  end   <- ymd_hms('2007-02-02 23:59:59')
+  plotdata <- filter(data, (DateTime >= start) & (DateTime <= end))
+  # save to file so that we avoid long load time next time we run
+  write.csv(plotdata, file=plotdatafile, row.names =  FALSE)
+} else {
+  plotcsvdata <- read.csv(plotdatafile, stringsAsFactors = FALSE, header=TRUE)
+  plotdata <- tbl_df(plotcsvdata)
+}
 
-# Convert to data table so we can work with dplyr
-data <- tbl_df(datacsv)
-
-# Create a single column for DateTime
-data <- mutate(data, Date = dmy(Date))
-data <- mutate(data, DateTime = paste(Date, Time, sep=' '))
-data <- mutate(data, DateTime = ymd_hms(DateTime))
-
-# filter the data so we keep only Feb 1-2 2007
-start <- ymd_hms('2007-02-01 00:00:00')
-end   <- ymd_hms('2007-02-02 23:59:59')
-plotdata <- filter(data, (DateTime >= start) & (DateTime <= end))
-
-# transform columns of interest into numbers
-plotdata <- mutate(plot1data, Sub_metering_1 = as.numeric(Sub_metering_1))
-plotdata <- mutate(plot1data, Sub_metering_2 = as.numeric(Sub_metering_2))
-plotdata <- mutate(plot1data, Sub_metering_3 = as.numeric(Sub_metering_3))
+# mutate DateTime to actual POSIXct date-time objects
+plotdata <- mutate(plotdata, DateTime = ymd_hms(DateTime))
 
 # plot lines to screen as per figure provided
 plot(plotdata$DateTime, plotdata$Sub_metering_1, col = 'black', type='l', xlab = '', ylab='Energy sub metering')

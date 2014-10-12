@@ -36,8 +36,10 @@ library(dplyr)
 library(lubridate)
 
 # Data source and destination
-zipurl  <- 'https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2Fhousehold_power_consumption.zip'
-zipfile <- './exdata_data_household_power_consumption.zip'
+zipurl   <- 'https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2Fhousehold_power_consumption.zip'
+zipfile  <- './exdata_data_household_power_consumption.zip'
+datafile <- 'household_power_consumption.txt';
+plotdatafile <- 'household_power_consumption-20070201-20070202.txt';
 
 # download from source if file is not present already
 if (!file.exists(zipfile)) {
@@ -45,26 +47,33 @@ download.file(zipurl, zipfile, 'curl')
 }
 
 # unzip the archive if not unzipped already
-if (file.exists(zipfile)) {
+if (file.exists(zipfile) & !file.exists(datafile)) {
   unzip(zipfile, overwrite = TRUE)
 }
 
-# load file as semi-colon separated values
-datafile = 'household_power_consumption.txt';
-datacsv <- read.csv(datafile, stringsAsFactors = FALSE, sep=';')
-
-# Convert to data table so we can work with dplyr
-data <- tbl_df(datacsv)
-
-# Create a single column for DateTime
-data <- mutate(data, Date = dmy(Date))
-data <- mutate(data, DateTime = paste(Date, Time, sep=' '))
-data <- mutate(data, DateTime = ymd_hms(DateTime))
-
-# filter the data so we keep only Feb 1-2 2007
-start <- ymd_hms('2007-02-01 00:00:00')
-end   <- ymd_hms('2007-02-02 23:59:59')
-plotdata <- filter(data, (DateTime >= start) & (DateTime <= end))
+if (!file.exists(plotdatafile)) {
+  # load file as semi-colon separated values
+  datacsv <- read.csv(datafile, stringsAsFactors = FALSE, sep=';', na.strings='?')
+  na.omit(datacsv)
+  
+  # Convert to data table so we can work with dplyr
+  data <- tbl_df(datacsv)
+  
+  # Create a single column for DateTime
+  data <- mutate(data, Date = dmy(Date))
+  data <- mutate(data, DateTime = paste(Date, Time, sep=' '))
+  data <- mutate(data, DateTime = ymd_hms(DateTime))
+  
+  # filter the data so we keep only Feb 1-2 2007
+  start <- ymd_hms('2007-02-01 00:00:00')
+  end   <- ymd_hms('2007-02-02 23:59:59')
+  plotdata <- filter(data, (DateTime >= start) & (DateTime <= end))
+  # save to file so that we avoid long load time next time we run
+  write.csv(plotdata, file=plotdatafile, row.names =  FALSE)
+} else {
+  plotcsvdata <- read.csv(plotdatafile, stringsAsFactors = FALSE, header=TRUE)
+  plotdata <- tbl_df(plotcsvdata)
+}
 
 # transform column of interest into numbers
 plotdata <- mutate(plotdata, Global_active_power = as.numeric(Global_active_power))
